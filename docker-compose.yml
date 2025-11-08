@@ -1,0 +1,30 @@
+services:
+  api:
+    build: .
+    container_name: rinh_auth_api
+    env_file: .env
+    depends_on:
+      - db
+    ports:
+      - "8000:8000"
+    command: >
+      sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
+    volumes:
+      - .:/app
+    restart: unless-stopped
+
+  db:
+    image: postgres:16
+    container_name: rinh_auth_db
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-rinh_hack_db}
+      POSTGRES_USER: ${POSTGRES_USER:-rinh_hack_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-rinh_hack_pass}
+    ports:
+      - "5678:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    restart: unless-stopped
+
+volumes:
+  pgdata:
