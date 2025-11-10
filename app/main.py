@@ -1,9 +1,10 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
-from app.api import routes_auth, routes_user
+from app.api import routes_auth, routes_user, routes_chat
 
-app = FastAPI(title=settings.APP_NAME)
+app = FastAPI(title="Тимур лошпендус 228",
+    version="1.3.3.7")
 
 app.add_middleware(
     CORSMiddleware,
@@ -15,3 +16,4 @@ app.add_middleware(
 
 app.include_router(routes_auth.router)
 app.include_router(routes_user.router)
+app.include_router(routes_chat.router)
