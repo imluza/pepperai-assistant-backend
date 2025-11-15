@@ -12,3 +12,10 @@ class ChatRequest(BaseModel):
 class ChatResponse(BaseModel):
     chat_id: UUID4
     stream: str
+
+
+class ChatCreate(BaseModel):
+    title: str
+
+class ChatRename(BaseModel):
+    new_title: str

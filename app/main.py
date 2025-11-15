@@ -1,19 +1,25 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.core.config import settings
-from app.api import routes_auth, routes_user, routes_chat
+
+from app.api import routes_auth, routes_user, routes_chat, routes_image, routes_video
 
 app = FastAPI(title="Тимур лошпендус 228",
-    version="1.3.3.7")
+    version="1.3.3.7.2.2.8")
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
-    allow_credentials=True,
 )
 
 app.include_router(routes_auth.router)
 app.include_router(routes_user.router)
 app.include_router(routes_chat.router)
+app.include_router(routes_image.router)
+app.include_router(routes_video.router)
+
+@app.get("/")
+def root():
+    return {"status": "ok"}
