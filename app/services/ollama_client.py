@@ -6,7 +6,6 @@ from app.services.chat_history import load_messages
 
 OLLAMA_CHAT_URL = "http://host.docker.internal:11434/api/chat"
 
-
 async def ollama_chat_stream(
     db,
     chat_id,
@@ -15,6 +14,7 @@ async def ollama_chat_stream(
     images_b64: Optional[List[str]],
     thinking: Optional[str]
 ) -> AsyncGenerator[dict, None]:
+
     history = await load_messages(db, chat_id)
 
     msg = {"role": "user", "content": prompt}
@@ -70,7 +70,6 @@ async def ollama_chat_generate(
 
     return text, tokens
 
-
 async def ollama_chat(
     db,
     chat_id,
@@ -89,12 +88,12 @@ async def ollama_chat(
             images_b64=images_b64,
             thinking=thinking
         )
-    else:
-        return await ollama_chat_generate(
-            db=db,
-            chat_id=chat_id,
-            model=model,
-            prompt=prompt,
-            images_b64=images_b64,
-            thinking=thinking
-        )
+
+    return await ollama_chat_generate(
+        db=db,
+        chat_id=chat_id,
+        model=model,
+        prompt=prompt,
+        images_b64=images_b64,
+        thinking=thinking
+    )

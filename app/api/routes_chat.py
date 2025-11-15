@@ -39,19 +39,21 @@ async def chat_completions(
     ))
     await db.commit()
 
+    gen = await ollama_chat(
+        db=db,
+        chat_id=str(chat.id),
+        model="qwen2.5vl",
+        prompt=payload.prompt,
+        thinking=payload.thinking,
+        images_b64=None,
+        stream=True
+    )
+
     async def stream():
         collected = []
         total_tokens = 0
 
-        async for chunk in ollama_chat(
-            db=db,
-            chat_id=chat.id,
-            model="qwen2.5vl",
-            prompt=payload.prompt,
-            images_b64=payload.images,
-            thinking=payload.thinking,
-            stream=True
-        ):
+        async for chunk in gen:
             msg = chunk.get("message", {})
             thinking = msg.get("thinking")
             content = msg.get("content")
@@ -229,7 +231,7 @@ async def get_full_video(
             "Content-Disposition": "inline; filename=\"video.mp4\""
         }
     )
-    
+
 @router.post("/create")
 async def create_chat(
     payload: ChatCreate,

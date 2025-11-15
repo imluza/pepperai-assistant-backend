@@ -3,8 +3,8 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api import routes_auth, routes_user, routes_chat, routes_image, routes_video
 
-app = FastAPI(title="Тимур лошпендус 228",
-    version="1.3.3.7.2.2.8")
+app = FastAPI(title="Ура, ура, хакатон",
+    version="6.7")
 
 app.add_middleware(
     CORSMiddleware,

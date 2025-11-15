@@ -1,10 +1,12 @@
 from fastapi import APIRouter, UploadFile, File, Depends, HTTPException
+from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from uuid import UUID
 
 from app.db.session import get_db
 from app.core.deps import get_current_user
 from app.models.chat import Chat, Message
+
 from app.services.ollama_client import ollama_chat
 from app.services.video_analyzer import extract_frames_bytes
 from app.utils.files import read_upload_file
@@ -39,7 +41,7 @@ async def analyze_video(
     if not frames_b64:
         raise HTTPException(400, "Cannot decode video")
 
-    thumb = frames_b64[0]
+    thumb_b64 = frames_b64[0]
 
     user_msg = Message(
         chat_id=chat.id,
@@ -47,19 +49,43 @@ async def analyze_video(
         type="video",
         content=prompt,
         video_full=file_b64,
-        image_thumb=thumb,
+        image_thumb=thumb_b64,
     )
     db.add(user_msg)
     await db.commit()
+
+    system_prompt = (
+        "Это видео разбитое по кадрам. Выполни требование пользователя.\n"
+        f"{prompt}"
+    )
+
+    if stream:
+        gen = await ollama_chat(
+            db=db,
+            chat_id=str(chat.id),
+            model="qwen2.5vl",
+            prompt=system_prompt,
+            images_b64=frames_b64,
+            thinking=thinking,
+            stream=True,
+        )
+
+        async def generator():
+            async for chunk in gen:
+                msg = chunk.get("message", {})
+                if "content" in msg:
+                    yield msg["content"]
+
+        return StreamingResponse(generator(), media_type="text/plain")
 
     text, tokens = await ollama_chat(
         db=db,
         chat_id=str(chat.id),
         model="qwen2.5vl",
-        prompt=f"Это видео разбитое по кадрам. Выполни требование пользователя.\n{prompt}",
+        prompt=system_prompt,
         images_b64=frames_b64,
         thinking=thinking,
-        stream=stream,
+        stream=False,
     )
 
     assistant_msg = Message(
